@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
@@ -110,5 +111,22 @@ public class EmployeePayrollDBService {
 			e.printStackTrace();
 		}
 		return entriesCount;
+	}
+
+	public long retiveMaxOfSalaryGroupByGender(char gender) {
+		long count = 0;
+		try {
+			Connection connection = this.getConnection();
+			employeePayrollDataStatement = connection
+					.prepareStatement("SELECT sum(salary) from employee_payroll where gender=? GROUP BY gender");
+			employeePayrollDataStatement.setString(1, String.valueOf(gender));
+			ResultSet resultSet = employeePayrollDataStatement.executeQuery();
+			while (resultSet.next()) {
+				count = resultSet.getLong(gender);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return count;
 	}
 }

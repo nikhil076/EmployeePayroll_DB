@@ -8,9 +8,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 public class EmployeePayrollDBService {
 	public static List<EmpPayrollData> empPayrollDataList = new ArrayList<>();
+	private PreparedStatement employeePayrollDataStatement;
 
 	private Connection getConnection() throws SQLException {
 		String jdbcURL = "jdbc:mysql://localhost:3306/payroll_services?characterEncoding=utf8";
@@ -23,24 +25,66 @@ public class EmployeePayrollDBService {
 		return connection;
 	}
 
-	public long readData() {
-		long count = 0 ;
-        String sql = "SELECT * FROM employee_payroll;";
-        try(Connection connection = this.getConnection();) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                double salary = resultSet.getDouble("salary");
-                LocalDate start = resultSet.getDate("start").toLocalDate();
-                empPayrollDataList.add(new EmpPayrollData(id, name,salary,start));
-                count = empPayrollDataList.stream().count();
-                
-            }
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
-        }
-        return count;
-    }
+	public List<EmpPayrollData> readData() {
+		long count = 0;
+		String sql = "SELECT * FROM employee_payroll;";
+		try (Connection connection = this.getConnection();) {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			while (resultSet.next()) {
+				int id = resultSet.getInt("id");
+				String name = resultSet.getString("name");
+				double salary = resultSet.getDouble("salary");
+				LocalDate start = resultSet.getDate("start").toLocalDate();
+				empPayrollDataList.add(new EmpPayrollData(id, name, salary, start));
+				count = empPayrollDataList.stream().count();
+
+			}
+		} catch (SQLException throwable) {
+			throwable.printStackTrace();
+		}
+		return empPayrollDataList;
+	}
+
+	public List<EmpPayrollData> getEmpPayrollData(String name) throws SQLException {
+		List<EmpPayrollData> empPayrollDataList = new ArrayList<>();
+		String sql = String.format("SELECT * FROM employee_payroll WHERE name='%s';", name);
+		try (Connection connection = getConnection()) {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			while (resultSet.next()) {
+				int id = resultSet.getInt("id");
+				String empName = resultSet.getString("name");
+				double salary = resultSet.getDouble("salary");
+				LocalDate start = resultSet.getDate("start").toLocalDate();
+				empPayrollDataList.add(new EmpPayrollData(id, empName, salary, start));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return empPayrollDataList;
+	}
+
+	private void prepareStatementEmployeeData() throws SQLException {
+		Connection connection = this.getConnection();
+		String sql = "SELECT * from employee_payroll WHERE name=?";
+		employeePayrollDataStatement = connection.prepareStatement(sql);
+	}
+
+	public int updateEmpData(String name, double salary) {
+		return this.updateDataUsingStatement(name, salary);
+	}
+
+	private int updateDataUsingStatement(String name, Double salary) {
+		String sql = String.format("UPDATE employee_payroll SET salary = %.2f WHERE name = '%s';", salary, name);
+		Connection connection;
+		try {
+			connection = this.getConnection();
+			Statement statement = connection.prepareStatement(sql);
+			return statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
 }

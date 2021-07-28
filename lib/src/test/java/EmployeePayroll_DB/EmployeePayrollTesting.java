@@ -28,4 +28,12 @@ public class EmployeePayrollTesting {
 		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Mark");
 		Assert.assertTrue(result);
 	}
+	
+	@Test
+	public void givenDateBetweeen_shouldReturnNumberOfvalues()
+	{
+		EmployeePayrollDBService dbService = new EmployeePayrollDBService();
+		int result = dbService.retriveDataBetweenGivenDate("2018-01-01", "2020-01-01");
+		Assert.assertEquals(1, result);
+	}
 }

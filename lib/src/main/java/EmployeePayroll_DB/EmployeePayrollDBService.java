@@ -87,4 +87,28 @@ public class EmployeePayrollDBService {
 		}
 		return 0;
 	}
+
+	public int retriveDataBetweenGivenDate(String startDate, String endDate) {
+		int entriesCount = 0;
+		Connection connection;
+		try {
+			connection = this.getConnection();
+			employeePayrollDataStatement = connection.prepareStatement(
+					"select * from employee_payroll where start between cast(? as date) and cast(? as date)");
+			employeePayrollDataStatement.setString(1, startDate);
+			employeePayrollDataStatement.setString(2, endDate);
+			ResultSet resultSet = employeePayrollDataStatement.executeQuery();
+			while (resultSet.next()) {
+				int id = resultSet.getInt("id");
+				String empName = resultSet.getString("name");
+				double salary = resultSet.getDouble("salary");
+				LocalDate start = resultSet.getDate("start").toLocalDate();
+				empPayrollDataList.add(new EmpPayrollData(id, empName, salary, start));
+			}
+			entriesCount = empPayrollDataList.size();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return entriesCount;
+	}
 }

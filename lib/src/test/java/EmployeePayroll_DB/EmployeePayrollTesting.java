@@ -1,6 +1,7 @@
 package EmployeePayroll_DB;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,17 @@ public class EmployeePayrollTesting {
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		EmployeePayrollDBService dbService = new EmployeePayrollDBService();
 		Map<String, Double> averageSalaryByGender = dbService.retiveAverageOfSalaryGroupByGender();
-		Assert.assertTrue(averageSalaryByGender.get("M").equals(5000000.00) && averageSalaryByGender.get("F").equals(1000000.00));
+		Assert.assertTrue(
+				averageSalaryByGender.get("M").equals(5000000.00) && averageSalaryByGender.get("F").equals(1000000.00));
+	}
+
+	@Test
+	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() throws SQLException {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		EmployeePayrollDBService dbService = new EmployeePayrollDBService();
+		dbService.addEmployeeToPayroll("John", 4000000.00, LocalDate.now(), "M");
+		Boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("John");
+		Assert.assertTrue(result);
 	}
 }

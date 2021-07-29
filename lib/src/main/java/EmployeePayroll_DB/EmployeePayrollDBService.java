@@ -1,6 +1,7 @@
 package EmployeePayroll_DB;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -115,9 +116,9 @@ public class EmployeePayrollDBService {
 		return entriesCount;
 	}
 
-	public Map<String,Double> retiveAverageOfSalaryGroupByGender() {
+	public Map<String, Double> retiveAverageOfSalaryGroupByGender() {
 		String sql = "SELECT gender,avg(salary) as avg_salary from employee_payroll GROUP BY gender";
-		Map<String , Double> genderToAverageSalaryMap = new HashMap<String, Double>();
+		Map<String, Double> genderToAverageSalaryMap = new HashMap<String, Double>();
 		try {
 			Connection connection = this.getConnection();
 			Statement statement = connection.createStatement();
@@ -131,5 +132,59 @@ public class EmployeePayrollDBService {
 			e.printStackTrace();
 		}
 		return genderToAverageSalaryMap;
+	}
+
+	public EmpPayrollData addEmployeeToPayroll(String name, double salary, LocalDate startDate, String gender) {
+		int employeeId = -1;
+		Connection connection = null;
+		EmpPayrollData empPayrollData = null;
+		try {
+			connection = this.getConnection();
+			connection.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = String.format(
+					"INSERT into employee_payroll (name,gender,salary,start) VALUES" + "('%s','%s','%s','%s')", name,
+					gender, salary, Date.valueOf(startDate));
+			int rowAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			if (rowAffected == 1) {
+				ResultSet resultSet = statement.getGeneratedKeys();
+				if (resultSet.next())
+					employeeId = resultSet.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			connection.rollback();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			Statement statement = connection.createStatement();
+			double deductions = salary * 0.2;
+			double taxablePay = salary - deductions;
+			double tax = taxablePay * 0.1;
+			double netPay = salary - tax;
+
+			String sql = String.format("INSERT INTO payroll_details"
+					+ "(employee_id , basc_pay,deducations,taxable_pay,tax,net_pay) VALUES" + "('%s','%s','%s','%s')",
+					employeeId, salary, deductions, taxablePay, tax, netPay);
+			int rowAffected = statement.executeUpdate(sql);
+			if (rowAffected == 1) {
+				empPayrollData = new EmpPayrollData(employeeId, name, salary, startDate);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return empPayrollData;
 	}
 }

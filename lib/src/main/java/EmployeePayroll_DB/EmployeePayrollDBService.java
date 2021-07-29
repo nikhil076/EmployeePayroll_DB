@@ -6,7 +6,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -113,20 +115,21 @@ public class EmployeePayrollDBService {
 		return entriesCount;
 	}
 
-	public long retiveMaxOfSalaryGroupByGender(char gender) {
-		long count = 0;
+	public Map<String,Double> retiveAverageOfSalaryGroupByGender() {
+		String sql = "SELECT gender,avg(salary) as avg_salary from employee_payroll GROUP BY gender";
+		Map<String , Double> genderToAverageSalaryMap = new HashMap<String, Double>();
 		try {
 			Connection connection = this.getConnection();
-			employeePayrollDataStatement = connection
-					.prepareStatement("SELECT sum(salary) from employee_payroll where gender=? GROUP BY gender");
-			employeePayrollDataStatement.setString(1, String.valueOf(gender));
-			ResultSet resultSet = employeePayrollDataStatement.executeQuery();
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
 			while (resultSet.next()) {
-				count = resultSet.getLong(gender);
+				String gender = resultSet.getString("gender");
+				double salary = resultSet.getDouble("avg_salary");
+				genderToAverageSalaryMap.put(gender, salary);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return count;
+		return genderToAverageSalaryMap;
 	}
 }

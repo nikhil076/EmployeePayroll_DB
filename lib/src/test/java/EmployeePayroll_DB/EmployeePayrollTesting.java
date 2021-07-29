@@ -2,6 +2,7 @@ package EmployeePayroll_DB;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,7 +14,6 @@ public class EmployeePayrollTesting {
 	@Test
 	public void given3EmployeesWhenReadFromFileShouldMatchNumberOfEmployeeEntries() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		int result = employeePayrollService.sizeOfEmpList();
 		Assert.assertEquals(4, result);
@@ -36,9 +36,11 @@ public class EmployeePayrollTesting {
 	}
 
 	@Test
-	public void givenGender_ShouldReturnSumOfSalary() {
+	public void givenGender_ShouldReturnAverageOfSalary() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		EmployeePayrollDBService dbService = new EmployeePayrollDBService();
-		long result = dbService.retiveMaxOfSalaryGroupByGender('M');
-		Assert.assertEquals(16000000, result);
+		Map<String, Double> averageSalaryByGender = dbService.retiveAverageOfSalaryGroupByGender();
+		Assert.assertTrue(averageSalaryByGender.get("M").equals(5000000.00) && averageSalaryByGender.get("F").equals(1000000.00));
 	}
 }

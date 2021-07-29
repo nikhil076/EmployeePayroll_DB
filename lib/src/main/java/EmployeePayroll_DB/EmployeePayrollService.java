@@ -40,18 +40,18 @@ public class EmployeePayrollService {
 			}
 		}
 		EmpPayrollData empPayrollData = this.getEmpPayrollData(name);
-		if(empPayrollDataList!=null)
-			empPayrollData.salary=salary;
+		if (empPayrollDataList != null)
+			empPayrollData.salary = salary;
 	}
-	
+
 	private EmpPayrollData getEmpPayrollData(String name) {
-        return this.empPayrollDataList.stream().filter(empPayrollDataItem -> empPayrollDataItem.name.equals(name))
-                .findFirst().orElse(null);
-    }
+		return this.empPayrollDataList.stream().filter(empPayrollDataItem -> empPayrollDataItem.name.equals(name))
+				.findFirst().orElse(null);
+	}
 
 	public boolean checkEmployeePayrollInSyncWithDB(String name) throws SQLException {
-        List<EmpPayrollData> empPayrollDataList = new EmployeePayrollDBService().getEmpPayrollData(name);
-        return empPayrollDataList.get(0).equals(getEmpPayrollData(name));
-    }
+		List<EmpPayrollData> empPayrollDataList = new EmployeePayrollDBService().getEmpPayrollData(name);
+		return empPayrollDataList.get(0).equals(getEmpPayrollData(name));
+	}
 
 }
